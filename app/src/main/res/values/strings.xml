@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Black Screen</string>
+    <string name="accessibility_service_description">Lets Black Screen detect a 10-second Volume Down hold to dismiss the overlay.</string>
+</resources>

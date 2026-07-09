@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@android:color/black">
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:layout_marginBottom="24dp"
+        android:text="Checking permissions..." />
+
+    <Button
+        android:id="@+id/grantOverlayButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1. Grant Overlay Permission"
+        android:layout_marginBottom="12dp"
+        android:textColor="@android:color/white" />
+
+    <Button
+        android:id="@+id/grantAccessibilityButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2. Enable Accessibility Service"
+        android:layout_marginBottom="24dp"
+        android:textColor="@android:color/white" />
+
+    <Button
+        android:id="@+id/enableOverlayButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enable Black Overlay"
+        android:enabled="false"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#888888"
+        android:textSize="12sp"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:text="Hold Volume Down for 10 seconds while the overlay is active to dismiss it." />
+
+</LinearLayout>

@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.BlackScreenApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#2196F3</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:windowBackground">#000000</item>
+    </style>
+</resources>
