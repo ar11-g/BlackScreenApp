@@ -2,9 +2,8 @@ name: Build APK
 
 on:
   push:
-    branches: [ main ]
-    tags:
-      - 'v*'
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -42,10 +41,25 @@ jobs:
           name: BlackScreenApp
           path: app/build/outputs/apk/release/app-release.apk
 
+      - name: Delete old latest tag
+        run: |
+          git tag -d latest || true
+          git push origin :refs/tags/latest || true
+        continue-on-error: true
+
+      - name: Create latest tag
+        run: |
+          git tag latest
+          git push origin latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: latest
+          name: Latest Build
           files: app/build/outputs/apk/release/app-release.apk
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
