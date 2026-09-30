@@ -29,7 +29,6 @@ class VolumeKeyAccessibilityService : AccessibilityService() {
         var isOverlayActive: Boolean = false
             private set
 
-        /** Called from MainActivity. Returns false if the service isn't running yet. */
         fun requestShowOverlay(): Boolean {
             val svc = instance ?: return false
             svc.showOverlay()
@@ -93,19 +92,10 @@ class VolumeKeyAccessibilityService : AccessibilityService() {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
-        // Dim to the lowest possible level while the overlay is up. This is
-        // a per-window override — Android applies it only while this window
-        // is on screen and restores the previous brightness automatically
-        // when it's removed. No WRITE_SETTINGS permission needed.
         params.screenBrightness = 0f
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Modern API: actually hides the status bar (and with it the
-            // location/mic privacy dot), rather than just the legacy
-            // systemUiVisibility flags which One UI can ignore.
             view.windowInsetsController?.let { applyHiddenBars(it) }
-            // The system likes to re-show bars on its own (new toast,
-            // notification, etc). Re-hide every time insets change.
             view.setOnApplyWindowInsetsListener { v, insets ->
                 v.windowInsetsController?.let { applyHiddenBars(it) }
                 insets
@@ -128,8 +118,6 @@ class VolumeKeyAccessibilityService : AccessibilityService() {
         isOverlayActive = true
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Re-apply once more after attach, since the controller is only
-            // reliably available once the view has a window.
             view.post { view.windowInsetsController?.let { applyHiddenBars(it) } }
         }
     }
