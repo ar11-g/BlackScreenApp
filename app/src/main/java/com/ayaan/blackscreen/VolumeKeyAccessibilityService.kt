@@ -8,6 +8,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 
@@ -47,9 +49,6 @@ class VolumeKeyAccessibilityService : AccessibilityService() {
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (!isOverlayActive) return false
 
-        // Volume Down: 10-second hold dismisses the overlay.
-        // Volume Up: always swallowed while active, so it can't pop the
-        // system volume slider on top of the overlay.
         return when (event.keyCode) {
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 when (event.action) {
@@ -94,19 +93,51 @@ class VolumeKeyAccessibilityService : AccessibilityService() {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
-        view.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            )
+        // Dim to the lowest possible level while the overlay is up. This is
+        // a per-window override — Android applies it only while this window
+        // is on screen and restores the previous brightness automatically
+        // when it's removed. No WRITE_SETTINGS permission needed.
+        params.screenBrightness = 0f
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Modern API: actually hides the status bar (and with it the
+            // location/mic privacy dot), rather than just the legacy
+            // systemUiVisibility flags which One UI can ignore.
+            view.windowInsetsController?.let { applyHiddenBars(it) }
+            // The system likes to re-show bars on its own (new toast,
+            // notification, etc). Re-hide every time insets change.
+            view.setOnApplyWindowInsetsListener { v, insets ->
+                v.windowInsetsController?.let { applyHiddenBars(it) }
+                insets
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            view.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                )
+        }
 
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         wm.addView(view, params)
         overlayView = view
         isOverlayActive = true
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Re-apply once more after attach, since the controller is only
+            // reliably available once the view has a window.
+            view.post { view.windowInsetsController?.let { applyHiddenBars(it) } }
+        }
+    }
+
+    private fun applyHiddenBars(controller: WindowInsetsController) {
+        controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+        controller.systemBarsBehavior =
+            WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
 
     private fun hideOverlay() {
